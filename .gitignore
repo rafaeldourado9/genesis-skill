@@ -1,0 +1,15 @@
+# Genesis Framework — .gitignore
+
+# Runtime files (gerados por projeto, não do framework em si)
+.genesis/memory/
+.genesis/state.json
+.genesis/context/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
