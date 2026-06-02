@@ -4,295 +4,355 @@
 
 # Genesis Framework
 
-**Build production-ready software from a description.**
+**Construa software production-ready a partir de uma descrição.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/rafaeldourado9/genesis/releases)
+[![npm](https://img.shields.io/npm/v/genesis-framework.svg)](https://www.npmjs.com/package/genesis-framework)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/rafaeldourado9/genesis?style=social)](https://github.com/rafaeldourado9/genesis/stargazers)
 
-*A multi-agent engineering framework that turns a project description into architecture, code, tests, and documentation — for any language, any stack.*
+*Framework multi-agente que transforma uma descrição de projeto em arquitetura, código, testes e documentação — para qualquer linguagem, qualquer stack.*
 
-[**Get Started →**](#installation) · [**See How It Works →**](#how-it-works) · [**Agent Roster →**](#agents)
+[**Instalação →**](#instalação) · [**Como funciona →**](#como-funciona) · [**Agentes →**](#agentes)
 
 </div>
 
 ---
 
-## The Problem
+## O Problema
 
-Starting a project the right way takes days:
-- Designing the architecture and documenting decisions (ADRs)
-- Picking the right stack and justifying the trade-offs
-- Setting up database schema, API contracts, testing strategy
-- Writing boilerplate, Docker, CI/CD, README
+Começar um projeto do jeito certo leva dias:
+- Projetar a arquitetura e documentar decisões (ADRs)
+- Escolher a stack certa com justificativas de trade-off
+- Definir schema do banco, contratos de API, estratégia de testes
+- Escrever boilerplate, Docker, CI/CD, README
 
-**Genesis does all of that in one session.**
-
----
-
-## How It Works
-
-```
-You describe your project
-         ↓
-genesis-intake   ──→  asks smart questions, creates the project manifest
-genesis-scout    ──→  maps existing code (brownfield projects)
-genesis-architect──→  C4 diagrams, ADRs, trade-off matrices, tech stack
-genesis-data     ──→  ER diagram, SQL schema, index strategy, migrations
-genesis-sprint   ──→  generates backlog, executes sprint by sprint
-genesis-backend  ──→  API, services, repositories (adapts to your language)
-genesis-frontend ──→  UI components, state, routes (adapts to your framework)
-genesis-qa       ──→  test pyramid, BDD scenarios, coverage
-genesis-devops   ──→  Docker, CI/CD pipelines, monitoring
-genesis-guard    ──→  audits compliance before merge
-genesis-docs     ──→  README, runbooks, ADR catalog
-```
-
-**One command. Any stack.**
+**O Genesis faz tudo isso em uma sessão.**
 
 ---
 
-## Installation
+## Instalação
 
-### Install in any project (Windows)
+Escolha o método mais conveniente para você.
 
-```powershell
-git clone https://github.com/rafaeldourado9/genesis.git D:\tools\genesis
-cd D:\tools\genesis
-.\install.ps1 -ProjectPath "C:\your\project"
-```
-
-### Install in any project (Linux/macOS)
+### Método 1 — npx (recomendado, sem instalação prévia)
 
 ```bash
-git clone https://github.com/rafaeldourado9/genesis.git ~/tools/genesis
-cd ~/tools/genesis
-bash install.sh /path/to/your/project
+# Instalar no projeto atual
+npx genesis-framework init
+
+# Instalar em um diretório específico
+npx genesis-framework init /caminho/do/projeto
+
+# Instalar globalmente no Claude Code (qualquer projeto)
+npx genesis-framework global
 ```
 
-### Start building
+### Método 2 — npm global
 
-Open [Claude Code](https://claude.ai/code) in your project and type:
+```bash
+npm install -g genesis-framework
+
+# Depois use em qualquer lugar:
+genesis-framework init
+genesis-framework global
+```
+
+### Método 3 — One-liner (Linux/macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeldourado9/genesis/main/scripts/install-remote.sh | bash
+```
+
+Com diretório específico:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeldourado9/genesis/main/scripts/install-remote.sh | bash -s -- /caminho/do/projeto
+```
+
+### Método 4 — One-liner (Windows PowerShell)
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/rafaeldourado9/genesis/main/scripts/install-remote.ps1 | iex
+```
+
+### Método 5 — Manual (clone + script)
+
+```bash
+# Linux/macOS
+git clone https://github.com/rafaeldourado9/genesis.git ~/tools/genesis
+bash ~/tools/genesis/install.sh /caminho/do/projeto
+
+# Windows
+git clone https://github.com/rafaeldourado9/genesis.git D:\tools\genesis
+D:\tools\genesis\install.ps1 -ProjectPath "C:\seu\projeto"
+```
+
+---
+
+## Primeiros Passos
+
+Após instalar, abra seu LLM preferido no projeto e digite:
 
 ```
 /genesis
 ```
 
-That's it. Genesis takes over from there.
+Isso é tudo. O Genesis assume o controle a partir daí.
+
+> **Compatível com:** Claude Code · Cursor · Gemini CLI · Qualquer LLM com suporte a slash commands
+
+---
+
+## Instalação Global vs. Por Projeto
+
+| | Por Projeto (`init`) | Global (`global`) |
+|--|---------------------|-------------------|
+| **Onde instala** | `.agents/skills/` no projeto | `~/.claude/commands/` |
+| **Disponível em** | Apenas este projeto | Todos os projetos |
+| **Estado persistente** | Sim (`.genesis/state.json`) | Não (adicionar `init` também) |
+| **Quando usar** | Projeto específico, equipe | Uso pessoal, todos os projetos |
+
+**Recomendação para uso pessoal:** rode `global` uma vez e pronto.
+
+```bash
+npx genesis-framework global
+```
+
+---
+
+## Como Funciona
+
+```
+Você descreve o projeto
+         ↓
+genesis-intake    ──→  faz perguntas inteligentes, cria o manifest do projeto
+genesis-scout     ──→  mapeia código existente (projetos brownfield)
+genesis-architect ──→  diagramas C4, ADRs, matrizes de trade-off, stack técnica
+genesis-data      ──→  diagrama ER, schema SQL, estratégia de índices, migrations
+genesis-sprint    ──→  gera backlog, executa sprint por sprint
+genesis-backend   ──→  API, services, repositories (adapta à sua linguagem)
+genesis-frontend  ──→  componentes UI, estado, rotas (adapta ao seu framework)
+genesis-qa        ──→  pirâmide de testes, BDD, cobertura
+genesis-devops    ──→  Docker, pipelines CI/CD, monitoramento
+genesis-guard     ──→  auditoria de conformidade antes do merge
+genesis-docs      ──→  README, runbooks, catálogo de ADRs
+```
+
+**Um comando. Qualquer stack.**
 
 ---
 
 ## Demo
 
-### New project from scratch
+### Novo projeto do zero
 
 ```
 > /genesis
 
-Genesis: Hi! Let me understand your project.
+Genesis: Olá! Vamos entender seu projeto.
 
-1. What's the project name and what does it do in one sentence?
-> "TaskFlow — a Kanban board for remote teams with real-time updates"
+1. Qual o nome e o que ele faz em uma frase?
+> "TaskFlow — um quadro Kanban para times remotos com atualizações em tempo real"
 
-2. Who are your users? How many concurrent users at launch?
-> "Teams of 5–50. ~100 concurrent at launch, ~1000 in year 1"
+2. Quem são os usuários? Quantos simultâneos no lançamento?
+> "Times de 5 a 50 pessoas. ~100 simultâneos no lançamento, ~1000 no ano 1"
 
-3. Do you have tech preferences or should I recommend a stack?
-> "Recommend something — I want to move fast"
+3. Tem preferência de tecnologia ou quer que eu recomende?
+> "Recomende — quero mover rápido"
 
-Genesis: Here's what I recommend and why:
-  Backend:  Python + FastAPI   (async, fast, great for real-time)
-  Database: PostgreSQL          (relational, ACID, pgvector ready)
-  Cache:    Redis               (WebSocket presence, pub/sub)
-  Frontend: React + Vite        (fast DX, Zustand state, React Query)
-  Deploy:   Docker + Compose    (simple, portable, CI-ready)
+Genesis: Aqui está o que eu recomendo e por quê:
+  Backend:  Python + FastAPI    (async, rápido, ótimo para tempo real)
+  Banco:    PostgreSQL          (relacional, ACID, pgvector pronto)
+  Cache:    Redis               (presença WebSocket, pub/sub)
+  Frontend: React + Vite        (DX rápido, Zustand state, React Query)
+  Deploy:   Docker + Compose    (simples, portátil, CI-ready)
 
-Tradeoffs documented in .genesis/architecture/adrs/
+Trade-offs documentados em .genesis/architecture/adrs/
 
-Approve? (y/n)
-> y
+Aprovar? (s/n)
+> s
 
-[genesis-architect]: Generating system design...
-  ✅ C4 Context + Container diagrams
-  ✅ ADR-001: Database choice (PostgreSQL vs MongoDB)
-  ✅ ADR-002: API framework (FastAPI vs Django)
-  ✅ ADR-003: Real-time strategy (WebSocket vs SSE vs polling)
-  ✅ Patterns registry
+[genesis-architect]: Gerando design do sistema...
+  ✅ Diagramas C4 Context + Container
+  ✅ ADR-001: Escolha do banco (PostgreSQL vs MongoDB)
+  ✅ ADR-002: Framework de API (FastAPI vs Django)
+  ✅ ADR-003: Estratégia real-time (WebSocket vs SSE vs polling)
+  ✅ Registro de patterns
 
-[genesis-data]: Designing schema...
-  ✅ 8 tables, 12 indexes, ER diagram, migration strategy
+[genesis-data]: Projetando schema...
+  ✅ 8 tabelas, 12 índices, diagrama ER, estratégia de migration
 
-[genesis-sprint]: Generating backlog...
-  ✅ 4 sprints, 28 tasks, bottom-up sequencing
+[genesis-sprint]: Gerando backlog...
+  ✅ 4 sprints, 28 tarefas, sequenciamento bottom-up
 
-[genesis-sprint] Sprint 1 executing...
+[genesis-sprint] Sprint 1 executando...
   ✅ S1-01: Docker Compose + env
   ✅ S1-02: Migrations: users, workspaces, boards
   ✅ S1-03: Auth: JWT + refresh tokens
-  ✅ S1-04: RBAC: require_role decorator
-  ✅ S1-05: Tests: 24 passing, 87% coverage
+  ✅ S1-04: RBAC: decorator require_role
+  ✅ S1-05: Testes: 24 passando, 87% cobertura
 
-Sprint 1 complete. 3 more to go.
+Sprint 1 concluído. 3 restantes.
 ```
 
 ---
 
-## Agents
+## Agentes
 
-| Agent | Role | Output |
-|-------|------|--------|
-| `genesis` | Orchestrator | Phase management, state |
-| `genesis-intake` | Requirements | `manifest.md` |
-| `genesis-scout` | Code mapping | `existing-code.md`, brownfield plan |
-| `genesis-architect` | Architecture | C4, ADRs, tradeoffs, patterns |
-| `genesis-data` | Data design | ER diagram, SQL schema, migrations |
-| `genesis-backend` | API layer | Services, repositories, OpenAPI |
-| `genesis-frontend` | UI layer | Components, hooks, routes |
-| `genesis-qa` | Quality | Test pyramid, BDD, E2E |
-| `genesis-devops` | Infrastructure | Docker, CI/CD, monitoring |
-| `genesis-sprint` | Execution | Backlog, sprint orchestration |
-| `genesis-docs` | Documentation | README, runbooks, ADR catalog |
-| `genesis-guard` | Compliance | Audit report before merge |
+| Agente | Papel | Output |
+|--------|-------|--------|
+| `genesis` | Orquestrador | Gerenciamento de fase e estado |
+| `genesis-intake` | Requisitos | `manifest.md` |
+| `genesis-scout` | Mapeamento de código | `existing-code.md`, plano brownfield |
+| `genesis-architect` | Arquitetura | C4, ADRs, trade-offs, patterns |
+| `genesis-data` | Design de dados | Diagrama ER, schema SQL, migrations |
+| `genesis-backend` | Camada de API | Services, repositories, OpenAPI |
+| `genesis-frontend` | Camada de UI | Componentes, hooks, rotas |
+| `genesis-qa` | Qualidade | Pirâmide de testes, BDD, E2E |
+| `genesis-devops` | Infraestrutura | Docker, CI/CD, monitoramento |
+| `genesis-sprint` | Execução | Backlog, orquestração de sprints |
+| `genesis-docs` | Documentação | README, runbooks, catálogo ADR |
+| `genesis-guard` | Conformidade | Relatório de auditoria pré-merge |
 | `genesis-reviewer` | Code review | Bugs, anti-patterns, drift |
 
 ---
 
-## Supported Stacks
+## Stacks Suportadas
 
-Genesis adapts to whatever you use:
+O Genesis se adapta ao que você usa:
 
-| Layer | Options |
-|-------|---------|
+| Camada | Opções |
+|--------|--------|
 | **Backend** | Python (FastAPI, Django, Flask) · Node.js (NestJS, Express) · Go (Gin, Echo) · Java (Spring Boot) · Ruby (Rails) · PHP (Laravel) · Rust (Axum) |
 | **Frontend** | React (Vite, Next.js) · Vue (Nuxt, Vite) · Angular · React Native (Expo) · Flutter · Svelte |
-| **Database** | PostgreSQL · MySQL · MongoDB · SQLite · DynamoDB · Firestore · Redis |
+| **Banco** | PostgreSQL · MySQL · MongoDB · SQLite · DynamoDB · Firestore · Redis |
 | **Deploy** | Docker Compose · Kubernetes · AWS (ECS, Lambda) · Railway · Render · Fly.io |
 | **CI/CD** | GitHub Actions · GitLab CI · CircleCI · Jenkins |
 
 ---
 
-## What Gets Generated
+## O que é Gerado
 
-### Architecture
-- C4 Context and Container diagrams (Mermaid)
-- ADRs for every significant decision
-- Trade-off matrices for tech choices
-- Patterns registry for the project
+### Arquitetura
+- Diagramas C4 Context e Container (Mermaid)
+- ADRs para cada decisão significativa
+- Matrizes de trade-off para escolhas técnicas
+- Registro de patterns do projeto
 
-### Data
-- ER diagram
-- SQL schema with constraints and indexes
-- Migration strategy with zero-downtime patterns
+### Dados
+- Diagrama ER
+- Schema SQL com constraints e índices
+- Estratégia de migration com padrões zero-downtime
 
-### Code
-- Full project structure
-- OpenAPI 3.0 contract
-- Service + Repository layers
+### Código
+- Estrutura completa do projeto
+- Contrato OpenAPI 3.0
+- Camadas Service + Repository
 - Auth + RBAC
-- Dockerfile (multi-stage) + docker-compose
-- GitHub Actions CI pipeline
+- Dockerfile multi-stage + docker-compose
+- Pipeline CI do GitHub Actions
 
-### Tests
-- Test pyramid strategy
-- Given-When-Then contracts
-- Unit + Integration + E2E tests
-- Coverage reporting
+### Testes
+- Estratégia de pirâmide de testes
+- Contratos Given-When-Then
+- Testes unitários + integração + E2E
+- Relatório de cobertura
 
-### Documentation
-- Professional README
+### Documentação
+- README profissional
 - CONTRIBUTING.md
-- Production runbook
-- ADR catalog
+- Runbook de produção
+- Catálogo de ADRs
 
 ---
 
-## Output Structure
+## Estrutura de Output
 
-Everything Genesis generates goes to `.genesis/` — never touches your existing code without showing you first.
+Tudo que o Genesis gera vai para `.genesis/` — nunca toca seu código existente sem mostrar primeiro.
 
 ```
 .genesis/
-├── state.json              # Current phase, tech stack, progress
-├── manifest.md             # Project bible (immutable after intake)
+├── state.json              # Fase atual, stack, progresso
+├── manifest.md             # Bíblia do projeto (imutável após intake)
 ├── context/
-│   ├── surface.json        # Existing code map (brownfield)
+│   ├── surface.json        # Mapa do código existente (brownfield)
 │   └── existing-code.md
 ├── architecture/
-│   ├── system-design.md    # C4 + architecture overview
-│   ├── tech-stack.md       # Chosen stack with full justification
-│   ├── patterns.md         # Project conventions
+│   ├── system-design.md    # C4 + visão geral da arquitetura
+│   ├── tech-stack.md       # Stack escolhida com justificativas
+│   ├── patterns.md         # Convenções do projeto
 │   └── adrs/               # Architecture Decision Records
 │       ├── 001-database.md
 │       └── ...
 ├── contracts/
-│   ├── openapi.yaml        # API spec
-│   ├── db-schema.sql       # Database schema
+│   ├── openapi.yaml        # Spec da API
+│   ├── db-schema.sql       # Schema do banco
 │   ├── er-diagram.md
-│   └── test-contracts.md   # Given-When-Then specs
+│   └── test-contracts.md   # Specs Given-When-Then
 ├── sprints/
 │   ├── backlog.md
 │   └── sprint-001.md
 └── memory/
-    ├── progress.md         # Task tracking
-    └── guard-report-*.md   # Audit reports
+    ├── progress.md         # Rastreamento de tarefas
+    └── guard-report-*.md   # Relatórios de auditoria
 ```
 
 ---
 
-## Principles
+## Princípios
 
-1. **Spec before code** — architecture and contracts before any implementation
-2. **ADR-first** — every non-trivial decision has a written record
-3. **Bottom-up** — data → backend → frontend (never the other way)
-4. **Test pyramid enforced** — zero merge without tests
-5. **Persistent memory** — sessions resume, nothing is lost
-6. **Tech-agnostic** — adapts to your stack, not the other way around
+1. **Spec antes de código** — arquitetura e contratos antes de qualquer implementação
+2. **ADR-first** — toda decisão não-trivial tem um registro escrito
+3. **Bottom-up** — dados → backend → frontend (nunca o contrário)
+4. **Pirâmide de testes** — zero merge sem testes adequados
+5. **Memória persistente** — sessões retomam de onde pararam
+6. **Agnóstico de tecnologia** — adapta-se à sua stack, não ao contrário
 
 ---
 
-## Works With
+## Compatibilidade
 
-Genesis is a set of AI agent skill files. It works with any agent runtime that supports the `.agents/skills/` convention:
+O Genesis é um conjunto de arquivos de skill para agentes de IA. Funciona com qualquer runtime que suporte o formato `.agents/skills/`:
 
-- [Claude Code](https://claude.ai/code) (recommended)
+- [Claude Code](https://claude.ai/code) (recomendado)
 - [Cursor](https://cursor.sh)
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli)
-- Any agent compatible with `SKILL.md` format
+- Qualquer LLM com suporte a slash commands customizados
 
 ---
 
 ## Roadmap
 
-- [ ] `genesis-mobile` — dedicated React Native + Expo agent
-- [ ] `genesis-ml` — ML pipeline agent (data prep, training, serving)
-- [ ] `genesis-migrate` — database migration planner for brownfield projects
-- [ ] Web UI for project management and sprint tracking
-- [ ] NPX installer: `npx genesis-init my-project`
-- [ ] Community agent registry
+- [ ] `genesis-mobile` — agente dedicado para React Native + Expo
+- [ ] `genesis-ml` — agente de pipeline ML (prep de dados, treino, serving)
+- [ ] `genesis-migrate` — planejador de migration para projetos brownfield
+- [ ] Interface web para gerenciamento de projetos e tracking de sprints
+- [ ] Registro de agentes da comunidade
+- [ ] Suporte a Cursor Rules (`.cursorrules`)
 
 ---
 
-## Contributing
+## Contribuindo
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
+Contribuições são bem-vindas! Veja [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Ideas for contributions:
-- New language/framework adapters for `genesis-backend` or `genesis-frontend`
-- Domain-specific agents (e-commerce, SaaS, IoT, ML pipelines)
-- Translations of the SKILL.md files
-- Real-world project examples using Genesis
+Ideias:
+- Novos adapters de linguagem/framework para `genesis-backend` ou `genesis-frontend`
+- Agentes de domínio específico (e-commerce, SaaS, IoT, pipelines ML)
+- Exemplos de projetos reais usando Genesis
+- Melhorias nos agentes existentes
 
 ---
 
-## License
+## Licença
 
-MIT — use it, modify it, distribute it, build on it.
+MIT — use, modifique, distribua, construa em cima.
 
 ---
 
 <div align="center">
 
-**Built with Genesis · [Star this repo](https://github.com/rafaeldourado9/genesis) if it helped you**
+**Construído com Genesis · [Dê uma estrela](https://github.com/rafaeldourado9/genesis) se ajudou**
 
 </div>

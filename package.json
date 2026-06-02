@@ -1,0 +1,36 @@
+{
+  "name": "genesis-framework",
+  "version": "1.0.0",
+  "description": "Framework multi-agente para construir software production-ready a partir de uma descrição",
+  "keywords": [
+    "genesis",
+    "ai",
+    "agents",
+    "llm",
+    "claude",
+    "code-generation",
+    "framework",
+    "multi-agent",
+    "software-engineering"
+  ],
+  "license": "MIT",
+  "bin": {
+    "genesis-framework": "./bin/genesis.js"
+  },
+  "files": [
+    "bin/",
+    ".agents/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaeldourado9/genesis.git"
+  },
+  "homepage": "https://github.com/rafaeldourado9/genesis#readme",
+  "bugs": {
+    "url": "https://github.com/rafaeldourado9/genesis/issues"
+  }
+}

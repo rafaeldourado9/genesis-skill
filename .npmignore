@@ -1,0 +1,20 @@
+# Excluir do pacote npm
+.git/
+.github/
+docs/
+examples/
+scripts/
+*.ps1
+*.sh
+.gitignore
+.gitattributes
+CHANGELOG.md
+CONTRIBUTING.md
+
+# MANTER no pacote (explícito):
+# bin/
+# .agents/
+# templates/
+# package.json
+# README.md
+# LICENSE
