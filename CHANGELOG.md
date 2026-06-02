@@ -1,22 +1,38 @@
 # Changelog
 
-All notable changes to Genesis Framework are documented here.
+Todas as mudanças notáveis do Genesis Framework são documentadas aqui.
 
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
-Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/)
+Versionamento: [Semantic Versioning](https://semver.org/lang/pt-BR/)
+
+---
+
+## [1.1.1] — 2026-06-02
+
+### Corrigido
+
+- Comandos `npx` corrigidos de `npx genesis-framework` para `npx github:rafaeldourado9/genesis-skill` (pacote ainda não publicado no npm)
+- Nome do repositório corrigido em todos os arquivos: `genesis` → `genesis-skill`
+
+### Melhorado
+
+- `CONTRIBUTING.md` traduzido para português
+- `examples/README.md` traduzido para português
+- Templates de issue e pull request do GitHub traduzidos para português
+- Histórico de commits limpo (removido Co-Authored-By dos commits anteriores)
 
 ---
 
 ## [1.1.0] — 2026-06-02
 
-### Added
+### Adicionado
 
 **Instalação universal via npm:**
 - `package.json` — pacote `genesis-framework` publicável no npm
 - `bin/genesis.js` — CLI Node.js sem dependências externas
-  - `npx genesis-framework init` — instala no projeto atual (Windows/Linux/macOS)
-  - `npx genesis-framework global` — instala globalmente em `~/.claude/commands/`
-  - `npx genesis-framework update` — atualiza skills existentes (alias de `init --force`)
+  - `npx github:rafaeldourado9/genesis-skill init` — instala no projeto atual (Windows/Linux/macOS)
+  - `npx github:rafaeldourado9/genesis-skill global` — instala globalmente em `~/.claude/commands/`
+  - `npx github:rafaeldourado9/genesis-skill update` — atualiza skills existentes (alias de `init --force`)
   - Flags: `--force`, `--global`, `--path`
 
 **Scripts de instalação remota (sem clonar o repositório):**
@@ -26,11 +42,11 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 **README reescrito em português:**
 - 5 métodos de instalação documentados com exemplos
-- Tabela de comparação instalação global vs por projeto
+- Tabela de comparação: instalação global vs por projeto
 - Demo completo em PT-BR
 - Badges npm adicionados
 
-### Changed
+### Alterado
 
 - `README.md` reescrito completamente em português
 - `.npmignore` adicionado para controlar o que entra no pacote npm
@@ -39,54 +55,53 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [1.0.0] — 2026-06-01
 
-### Added
+### Adicionado
 
-**13 specialized agents:**
+**13 agentes especializados:**
 
-- `genesis` — Main orchestrator with greenfield and brownfield support
-- `genesis-intake` — Progressive requirements elicitation with smart questions
-- `genesis-scout` — Existing codebase mapper for brownfield projects
-- `genesis-architect` — C4 diagrams, ADRs, trade-off matrices, tech stack selection
-- `genesis-data` — ER diagram, SQL schema, index strategy, migration guide
-- `genesis-backend` — API implementation adapting to Python/Node/Go/Java and more
-- `genesis-frontend` — UI implementation adapting to React/Vue/RN/Flutter and more
-- `genesis-qa` — Test pyramid strategy, BDD scenarios, E2E, coverage
-- `genesis-devops` — Docker, CI/CD pipelines, environments, monitoring
-- `genesis-sprint` — Backlog generation and bottom-up sprint execution
-- `genesis-docs` — README, runbooks, ADR catalog, docstrings
-- `genesis-guard` — Pre-merge compliance auditor
-- `genesis-reviewer` — Code review for bugs, anti-patterns, architectural drift
+- `genesis` — Orquestrador principal com suporte a projetos greenfield e brownfield
+- `genesis-intake` — Coleta progressiva de requisitos com perguntas inteligentes
+- `genesis-scout` — Mapeamento de código existente para projetos brownfield
+- `genesis-architect` — Diagramas C4, ADRs, matrizes de trade-off, seleção de stack técnica
+- `genesis-data` — Diagrama ER, schema SQL, estratégia de índices, guia de migrations
+- `genesis-backend` — Implementação de API adaptando-se a Python/Node/Go/Java e mais
+- `genesis-frontend` — Implementação de UI adaptando-se a React/Vue/RN/Flutter e mais
+- `genesis-qa` — Pirâmide de testes, cenários BDD, E2E, cobertura
+- `genesis-devops` — Docker, pipelines CI/CD, ambientes, monitoramento
+- `genesis-sprint` — Geração de backlog e execução de sprints bottom-up
+- `genesis-docs` — README, runbooks, catálogo de ADRs, docstrings
+- `genesis-guard` — Auditor de conformidade pré-merge
+- `genesis-reviewer` — Code review para bugs, anti-patterns e drift arquitetural
 
-**Installation:**
-- `install.ps1` — Windows PowerShell installer
-- `install.sh` — Linux/macOS bash installer
+**Instalação:**
+- `install.ps1` — Instalador PowerShell para Windows
+- `install.sh` — Instalador bash para Linux/macOS
 
-**Project state persistence:**
-- `.genesis/state.json` — phase tracking across sessions
-- `.genesis/manifest.md` — immutable project bible after intake
-- `.genesis/architecture/` — ADRs, C4, patterns, tradeoffs
-- `.genesis/contracts/` — OpenAPI, schema, test contracts
-- `.genesis/memory/` — progress tracking, guard reports
+**Persistência de estado do projeto:**
+- `.genesis/state.json` — rastreamento de fase entre sessões
+- `.genesis/manifest.md` — bíblia imutável do projeto após o intake
+- `.genesis/architecture/` — ADRs, C4, patterns, trade-offs
+- `.genesis/contracts/` — OpenAPI, schema, contratos de testes
+- `.genesis/memory/` — rastreamento de progresso, relatórios do guard
 
-**Supported stacks at launch:**
+**Stacks suportadas no lançamento:**
 - Backend: Python (FastAPI, Django), Node.js (NestJS, Express), Go (Gin), Java (Spring Boot)
 - Frontend: React (Vite, Next.js), Vue, Angular, React Native, Flutter
-- Database: PostgreSQL, MySQL, MongoDB, SQLite, DynamoDB
+- Banco: PostgreSQL, MySQL, MongoDB, SQLite, DynamoDB
 - Deploy: Docker Compose, Kubernetes, AWS, Railway, Render
 
 ---
 
-## Planned for [1.1.0]
+## Roadmap
 
-- [ ] Elixir + Phoenix adapter
-- [ ] Bun + Hono adapter
-- [ ] SvelteKit adapter
-- [ ] `genesis-mobile` dedicated agent for React Native + Expo
-- [ ] NPX installer: `npx genesis-init my-project`
+### [1.2.0]
+- [ ] Adapter Elixir + Phoenix
+- [ ] Adapter Bun + Hono
+- [ ] Adapter SvelteKit
+- [ ] Agente `genesis-mobile` dedicado para React Native + Expo
 
-## Planned for [2.0.0]
-
-- [ ] `genesis-ml` — ML pipeline agent
-- [ ] `genesis-migrate` — brownfield database migration planner
-- [ ] Community agent registry
-- [ ] Web dashboard for project/sprint management
+### [2.0.0]
+- [ ] Agente `genesis-ml` — pipeline de ML
+- [ ] Agente `genesis-migrate` — planejador de migration para projetos brownfield
+- [ ] Registro de agentes da comunidade
+- [ ] Dashboard web para gerenciamento de projetos e sprints
