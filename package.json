@@ -1,6 +1,6 @@
 {
   "name": "genesis-framework",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Framework multi-agente para construir software production-ready a partir de uma descrição",
   "keywords": [
     "genesis",

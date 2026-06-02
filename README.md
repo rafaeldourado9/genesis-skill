@@ -7,7 +7,7 @@
 **Construa software production-ready a partir de uma descrição.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/rafaeldourado9/genesis/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/rafaeldourado9/genesis/releases)
 [![npm](https://img.shields.io/npm/v/genesis-framework.svg)](https://www.npmjs.com/package/genesis-framework)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 

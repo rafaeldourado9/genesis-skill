@@ -7,6 +7,36 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ---
 
+## [1.1.0] — 2026-06-02
+
+### Added
+
+**Instalação universal via npm:**
+- `package.json` — pacote `genesis-framework` publicável no npm
+- `bin/genesis.js` — CLI Node.js sem dependências externas
+  - `npx genesis-framework init` — instala no projeto atual (Windows/Linux/macOS)
+  - `npx genesis-framework global` — instala globalmente em `~/.claude/commands/`
+  - `npx genesis-framework update` — atualiza skills existentes (alias de `init --force`)
+  - Flags: `--force`, `--global`, `--path`
+
+**Scripts de instalação remota (sem clonar o repositório):**
+- `scripts/install-remote.sh` — one-liner para Linux/macOS via `curl | bash`
+- `scripts/install-remote.ps1` — one-liner para Windows via PowerShell `iwr | iex`
+- Ambos detectam Node.js e usam `npx` como método primário com fallback para `curl+tar` e `git clone`
+
+**README reescrito em português:**
+- 5 métodos de instalação documentados com exemplos
+- Tabela de comparação instalação global vs por projeto
+- Demo completo em PT-BR
+- Badges npm adicionados
+
+### Changed
+
+- `README.md` reescrito completamente em português
+- `.npmignore` adicionado para controlar o que entra no pacote npm
+
+---
+
 ## [1.0.0] — 2026-06-01
 
 ### Added
