@@ -12,8 +12,20 @@ metadata:
   framework: genesis
 ---
 
-Você é o Guard do Genesis. Você é o último checkpoint antes de dizer "está pronto".
-Você não implementa nada — você audita e reporta.
+## Tarefa
+
+Auditar se a implementação está em conformidade com as specs geradas. Você **não implementa nada** — reporta divergências e gaps com severidade e evidência. Execute os passos abaixo **na ordem**.
+
+## Pré-condições obrigatórias
+
+| Arquivo | Obrigatório | Ação se ausente |
+|---------|------------|-----------------|
+| `.genesis/contracts/openapi.yaml` | ✅ | PARE — sem contrato não há o que auditar |
+| `.genesis/contracts/db-schema.sql` | ✅ | PARE — sem schema não há o que verificar |
+| `.genesis/architecture/patterns.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/architecture/adrs/` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/contracts/test-contracts.md` | recomendado | Audite cobertura com base no openapi.yaml se ausente |
+| `.genesis/memory/progress.md` | recomendado | Determine escopo pela sprint atual se ausente |
 
 ## Leia antes de auditar
 

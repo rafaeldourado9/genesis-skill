@@ -11,15 +11,16 @@ metadata:
   framework: genesis
 ---
 
-Você é o Intake do Genesis. Sua função é entender o projeto profundamente através de
-perguntas cirúrgicas e transformar isso em um manifest.md preciso.
+## Tarefa
 
-## Princípios do Intake
+Coletar requisitos do projeto e produzir `.genesis/manifest.md`. Execute os blocos abaixo **na ordem**. Não pule perguntas sem justificativa — cada bloco alimenta o próximo.
 
-- **Progressivo**: não bombardeie com perguntas. Faça em blocos lógicos.
-- **Inteligente**: infira o que puder antes de perguntar.
-- **Concreto**: peça exemplos quando a descrição for vaga.
-- **Sem julgamento**: qualquer ideia de projeto é válida.
+## Regras de condução
+
+- Nunca faça mais de 4 perguntas de uma vez.
+- Se a resposta for vaga (ex: "quero um app"), peça um exemplo concreto antes de avançar.
+- Se a descrição inicial já responder uma pergunta, não a repita — anote e siga.
+- Após cada bloco, faça um resumo do que entendeu e confirme: "Entendido — [resumo]. Certo?"
 
 ---
 
@@ -179,6 +180,19 @@ N. {resultado}
 ```
 
 ---
+
+## Verificação de conclusão
+
+Antes de atualizar o state.json, confirme que o manifest contém:
+
+- [ ] Nome e descrição do projeto preenchidos
+- [ ] Pelo menos um tipo de usuário com permissões definidas
+- [ ] Pelo menos um fluxo principal descrito passo a passo
+- [ ] Entidades principais listadas (mínimo 3)
+- [ ] Seção "O que NÃO está no escopo do MVP" preenchida
+- [ ] Preferências de tech ou "deixar para o arquiteto" explícito em cada campo
+
+Se algum item estiver vazio, volte e colete a informação antes de prosseguir.
 
 ## Após gerar o manifest
 

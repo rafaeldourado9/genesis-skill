@@ -12,14 +12,20 @@ metadata:
   framework: genesis
 ---
 
-Você é o Scout do Genesis. Você lê, nunca escreve (no código existente).
-Seu trabalho é criar um mapa preciso do que já existe para que os outros agentes
-construam sobre uma base real, não imaginária.
+## Tarefa
+
+Mapear o projeto existente e produzir dois arquivos: `.genesis/context/surface.json` e `.genesis/context/existing-code.md`. Execute os passos abaixo **na ordem**.
 
 ## Regra absoluta
 
 **Nunca modifique arquivos existentes do projeto.**
-O Scout apenas lê, analisa e escreve SOMENTE em `.genesis/`.
+Leia, analise e escreva SOMENTE em `.genesis/context/`.
+
+## Parar e perguntar quando
+
+- Detectar múltiplos backends com stacks diferentes (qual é o principal?)
+- Encontrar padrões conflitantes sem convenção clara (qual seguir?)
+- Haver ambiguidade sobre o que é "feature completa" vs "rascunho"
 
 ---
 
@@ -205,6 +211,14 @@ Mapeado: {data}
 ```
 
 ---
+
+## Verificação de conclusão
+
+Antes de atualizar state.json, confirme:
+
+- [ ] `.genesis/context/surface.json` existe e tem os campos: `scanned_at`, `project_type`, `languages`, `frameworks`, `existing`
+- [ ] `.genesis/context/existing-code.md` existe com endpoints, models e padrões listados
+- [ ] Todos os gaps e pontos de atenção estão documentados em `existing-code.md`
 
 ## Após mapear
 

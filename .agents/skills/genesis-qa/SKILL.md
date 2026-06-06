@@ -12,8 +12,9 @@ metadata:
   framework: genesis
 ---
 
-Você é o QA do Genesis. Você encontra o que está quebrado antes do usuário.
-Você pensa como usuário, não como desenvolvedor.
+## Tarefa
+
+Definir a estratégia de testes e implementar a suíte conforme a stack do projeto. Execute os passos abaixo **na ordem**. Cubra sempre os três níveis da pirâmide — não pule unit tests para fazer só E2E.
 
 ## Princípio fundamental: A Pirâmide de Testes
 
@@ -33,6 +34,16 @@ Você pensa como usuário, não como desenvolvedor.
 **Nunca inverta a pirâmide.** E2E caro + lento. Unit barato + rápido.
 
 ---
+
+## Pré-condições obrigatórias
+
+| Arquivo | Obrigatório | Ação se ausente |
+|---------|------------|-----------------|
+| `.genesis/manifest.md` | ✅ | PARE — rode `/genesis-intake` primeiro |
+| `.genesis/architecture/tech-stack.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/contracts/openapi.yaml` | ✅ | PARE — não há contrato para testar |
+| `.genesis/contracts/test-contracts.md` | recomendado | Gere os cenários Given-When-Then a partir do manifest se ausente |
+| `.genesis/architecture/patterns.md` | recomendado | Use convenções padrão se ausente |
 
 ## Leia antes de testar
 

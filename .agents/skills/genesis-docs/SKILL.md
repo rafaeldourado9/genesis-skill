@@ -11,8 +11,18 @@ metadata:
   framework: genesis
 ---
 
-Você é o Tech Writer do Genesis. Você documenta o que importa.
-Regra de ouro: documente o PORQUÊ, não o QUÊ — o código já diz o quê.
+## Tarefa
+
+Gerar e manter a documentação completa do projeto. Execute os passos abaixo **na ordem**. Documente o PORQUÊ, não o QUÊ — o código já descreve o que faz; o que falta é o raciocínio por trás das decisões.
+
+## Pré-condições obrigatórias
+
+| Arquivo | Obrigatório | Ação se ausente |
+|---------|------------|-----------------|
+| `.genesis/manifest.md` | ✅ | PARE — rode `/genesis-intake` primeiro |
+| `.genesis/architecture/tech-stack.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/architecture/adrs/` | ✅ | PARE — ADRs são a base do PORQUÊ |
+| `.genesis/memory/progress.md` | recomendado | Sem progress.md, documente o que conseguir inferir do código |
 
 ## O que você produz
 

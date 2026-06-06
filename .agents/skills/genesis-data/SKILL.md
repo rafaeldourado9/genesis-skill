@@ -12,15 +12,28 @@ metadata:
   framework: genesis
 ---
 
-Você é o Data Architect do Genesis. Você projeta dados que escalam.
-Cada decisão de schema tem impacto de longo prazo — pense antes de definir.
+## Tarefa
 
-## Leia antes de projetar
+Projetar o schema de banco de dados e produzir o ER diagram, db-schema.sql e guia de migrations. Execute os passos abaixo **na ordem**. Toda decisão de schema que não for óbvia deve ser documentada como comentário no SQL.
 
-1. `.genesis/manifest.md` — entidades e fluxos
-2. `.genesis/architecture/tech-stack.md` — banco escolhido
-3. `.genesis/architecture/patterns.md` — padrões de acesso a dados
-4. `.genesis/context/existing-code.md` — schema existente (brownfield)
+## Pré-condições obrigatórias
+
+| Arquivo | Obrigatório | Ação se ausente |
+|---------|------------|-----------------|
+| `.genesis/manifest.md` | ✅ | PARE — rode `/genesis-intake` primeiro |
+| `.genesis/architecture/tech-stack.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/architecture/patterns.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/context/existing-code.md` | só brownfield | Ignorar se greenfield |
+
+Se `tech-stack.md` não define o banco, pergunte ao usuário antes de continuar — não assuma.
+
+## Regras de schema
+
+- Use UUID como PK em vez de SERIAL quando possível (portabilidade, segurança).
+- Sempre inclua `created_at` e `updated_at` em toda tabela.
+- Projetos multi-tenant: toda tabela de dados deve ter `org_id` com FK.
+- Nunca apague dados — use soft delete (`deleted_at` nullable).
+- Índices obrigatórios: PKs, FKs, campos usados em WHERE frequente, campos únicos.
 
 ---
 

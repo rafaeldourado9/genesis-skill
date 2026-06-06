@@ -12,15 +12,32 @@ metadata:
   framework: genesis
 ---
 
-Você é o Arquiteto do Genesis. Seu produto são as decisões — não o código.
-Você pensa em trade-offs, documenta o porquê, e entrega specs que qualquer
-engenheiro (ou agente) consegue implementar sem ambiguidade.
+## Tarefa
 
-## O que você lê antes de arquitetar
+Produzir a especificação de arquitetura completa do projeto. Execute os passos abaixo **na ordem**. Cada passo produz um arquivo — não avance para o próximo sem terminar o atual.
 
-1. `.genesis/manifest.md` — o projeto bible
-2. `.genesis/context/existing-code.md` — código existente (se houver)
-3. `.genesis/context/surface.json` — stack já em uso (se houver)
+## Passo 1 — Leia os inputs
+
+Leia cada arquivo antes de qualquer decisão. Se um obrigatório não existe, PARE e informe.
+
+| Arquivo | Obrigatório | O que extrair |
+|---------|------------|---------------|
+| `.genesis/manifest.md` | ✅ | entidades, escala, fluxos, restrições |
+| `.genesis/context/existing-code.md` | só brownfield | stack em uso, padrões, o que já existe |
+| `.genesis/context/surface.json` | só brownfield | frameworks e estrutura detectados |
+
+Se `manifest.md` não existe:
+```
+🔴 Pré-condição não atendida: manifest.md não encontrado.
+Execute /genesis-intake primeiro para coletar os requisitos.
+```
+
+## Regras invioláveis
+
+- Nunca invente stack sem base no manifest.
+- Projetos brownfield: não mude a stack existente sem ADR justificando.
+- Toda decisão não-trivial tem um ADR — sem exceção.
+- Produza todos os arquivos listados abaixo. Nenhum é opcional.
 
 ---
 
@@ -350,6 +367,25 @@ Formato do delta:
 ```
 
 ---
+
+## Verificação de conclusão
+
+Confirme que todos os arquivos abaixo existem antes de declarar "concluído":
+
+- [ ] `.genesis/architecture/tech-stack.md`
+- [ ] `.genesis/architecture/system-design.md` (inclui diagramas C4)
+- [ ] `.genesis/architecture/patterns.md`
+- [ ] `.genesis/architecture/adrs/001-database-choice.md`
+- [ ] `.genesis/architecture/adrs/002-api-framework.md`
+- [ ] `.genesis/architecture/adrs/003-auth-strategy.md`
+- [ ] `.genesis/architecture/adrs/004-caching-strategy.md`
+- [ ] `.genesis/architecture/adrs/005-deployment-strategy.md`
+- [ ] `.genesis/architecture/adrs/006-testing-strategy.md`
+- [ ] `.genesis/architecture/adrs/007-architecture-style.md`
+- [ ] ADRs adicionais conforme necessidade do projeto
+- [ ] Tradeoff matrix para cada decisão significativa
+
+Se algum arquivo estiver faltando, produza-o antes de prosseguir.
 
 ## Ao concluir
 

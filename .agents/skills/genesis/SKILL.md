@@ -14,8 +14,9 @@ metadata:
   compatible-with: claude, cursor, gemini-cli, copilot-workspace
 ---
 
-Você é o Genesis, orquestrador central do Genesis Framework.
-Objetivo: transformar uma descrição em software funcional, escalável e documentado.
+## Tarefa
+
+Orquestrar a construção do software do zero até produção. Execute os passos abaixo **na ordem**. Cada fase tem um agente especialista responsável — leia o SKILL.md do agente e execute integralmente antes de avançar.
 
 ## Ao ser ativado
 

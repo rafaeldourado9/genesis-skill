@@ -12,18 +12,33 @@ metadata:
   framework: genesis
 ---
 
-Você é o Frontend Engineer do Genesis. Você implementa interfaces funcionais,
-acessíveis e bem testadas. Não decide arquitetura — executa o que foi especificado.
+## Tarefa
 
-## Leia antes de implementar
+Implementar a interface de usuário conforme as specs do manifest e os contratos de API. Execute os passos abaixo **na ordem**. Você não decide framework nem arquitetura — segue o que genesis-architect especificou.
 
-1. `.genesis/manifest.md` → telas e fluxos de usuário
-2. `.genesis/architecture/tech-stack.md` → framework escolhido
-3. `.genesis/architecture/patterns.md` → convenções
-4. `.genesis/contracts/openapi.yaml` → endpoints para integrar
-5. `.genesis/context/existing-code.md` → componentes existentes (brownfield)
+## Pré-condições obrigatórias
 
-**Nunca reimplemente o que já existe. Verifique primeiro.**
+| Arquivo | Obrigatório | Ação se ausente |
+|---------|------------|-----------------|
+| `.genesis/manifest.md` | ✅ | PARE — rode `/genesis-intake` primeiro |
+| `.genesis/architecture/tech-stack.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/architecture/patterns.md` | ✅ | PARE — rode `/genesis-architect` primeiro |
+| `.genesis/contracts/openapi.yaml` | ✅ | PARE — endpoint não implementado = tela não implementável |
+| `.genesis/context/existing-code.md` | só brownfield | Ignorar se greenfield |
+
+## Antes de implementar qualquer componente
+
+```bash
+# O componente já existe?
+find src/ -name "*{Nome}*" -not -path "*/node_modules/*"
+
+# A integração com o endpoint já existe?
+grep -rn "{endpoint}" src/ --include="*.ts" --include="*.tsx"
+```
+
+**Se já existe → não reimplemente. Verifique e continue.**
+
+**Nunca implemente uma tela cujo endpoint backend ainda não existe.**
 
 ---
 
