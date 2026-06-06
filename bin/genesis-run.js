@@ -54,7 +54,7 @@ function box(lines, w = 54) {
   ln(c.dim(`  ${S.tl}${S.h.repeat(w)}${S.tr}`));
   for (const line of lines) {
     const pad = ' '.repeat(Math.max(0, w - line.replace(/\x1b\[[0-9;]*m/g, '').length - 2));
-    ln(`${c.dim(S.v)}  ${line}${pad}${c.dim(S.v)}`);
+    ln(`  ${c.dim(S.v)}  ${line}${pad}${c.dim(S.v)}`);
   }
   ln(c.dim(`  ${S.bl}${S.h.repeat(w)}${S.br}`));
 }
@@ -80,63 +80,90 @@ function banner() {
 
 // ── Input ─────────────────────────────────────────────────────────────────────
 
-let _rl;
-function getRL() {
-  if (!_rl) {
-    _rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
-    _rl.on('SIGINT', () => { ln(c.dim('\n  até logo.')); process.exit(0); });
-    _rl.on('close', () => process.exit(0));
-  }
-  return _rl;
-}
+// All interactive input goes through raw mode to avoid readline/setRawMode conflicts
+// on Windows PowerShell. Falls back to a muted readline in non-TTY environments (CI).
 
-function ask(prompt) {
+process.on('SIGINT', () => { out('\n'); ln(c.dim('  até logo.')); process.exit(0); });
+
+function readRaw(prompt, masked = false) {
   out(prompt);
-  return new Promise((resolve) => getRL().once('line', (l) => resolve(l.trim())));
-}
-
-// Masked input — shows ∗ per character, works in TTY; falls back to plain in CI
-function readSecret(label) {
-  const padded = label.padEnd(22);
-  out(`  ${c.dim(padded)}  ${c.dim(S.arrow)}  `);
-
-  if (!process.stdin.isTTY) {
-    // CI / pipe — readline normally (no masking possible)
-    return new Promise((resolve) => getRL().once('line', (l) => { ln(); resolve(l.trim()); }));
-  }
-
-  getRL().pause();
 
   return new Promise((resolve) => {
+    if (!process.stdin.isTTY) {
+      const { Writable } = require('stream');
+      const muted = new Writable({ write: (_c, _e, cb) => cb() });
+      const rl = readline.createInterface({ input: process.stdin, output: muted, terminal: false });
+      rl.once('line', (line) => { rl.close(); resolve(line); });
+      return;
+    }
+
     let buf = '';
 
-    const restore = () => {
+    const cleanup = () => {
+      process.stdin.removeListener('data', handler);
       try { process.stdin.setRawMode(false); } catch {}
-      process.stdin.removeAllListeners('data');
-      getRL().resume();
+      process.stdin.pause();
     };
 
-    const handler = (raw) => {
-      const ch = raw.toString('utf8');
-      if (ch === '\r' || ch === '\n') {
-        restore(); ln(); resolve(buf);
-      } else if (ch === '') {
-        restore(); ln(c.dim('\n  cancelado.')); process.exit(0);
-      } else if (ch === '' || ch === '\b') {
-        if (buf.length) { buf = buf.slice(0, -1); out('\b \b'); }
-      } else if (ch >= ' ') {
-        buf += ch; out(c.dim('∗'));
+    function handler(chunk) {
+      for (let i = 0; i < chunk.length; i++) {
+        const b = chunk[i];
+
+        if (b === 13 || b === 10) {        // Enter
+          cleanup();
+          out('\n');
+          resolve(buf);
+          return;
+        }
+
+        if (b === 3) {                     // Ctrl+C
+          cleanup();
+          out('\n');
+          process.exit(0);
+          return;
+        }
+
+        if (b === 27) {                    // ESC — skip ANSI sequences (arrow keys etc.)
+          if (i + 1 < chunk.length && chunk[i + 1] === 91) {
+            i += 2;
+            while (i < chunk.length && (chunk[i] < 0x40 || chunk[i] > 0x7e)) i++;
+          }
+          continue;
+        }
+
+        if (b === 127 || b === 8) {        // Backspace
+          if (buf.length) { buf = buf.slice(0, -1); out('\b \b'); }
+          continue;
+        }
+
+        if (b >= 32 && b < 127) {          // Printable ASCII
+          const ch = String.fromCharCode(b);
+          buf += ch;
+          out(masked ? c.dim('∗') : ch);
+        }
       }
-    };
+    }
 
     try {
       process.stdin.setRawMode(true);
+      process.stdin.resume();
       process.stdin.on('data', handler);
     } catch {
-      restore();
-      resolve(ask(''));
+      const { Writable } = require('stream');
+      const muted = new Writable({ write: (_c, _e, cb) => cb() });
+      const rl = readline.createInterface({ input: process.stdin, output: muted, terminal: false });
+      rl.once('line', (line) => { rl.close(); resolve(line); });
     }
   });
+}
+
+function ask(prompt) {
+  return readRaw(prompt, false);
+}
+
+function readSecret(label) {
+  const padded = label.padEnd(22);
+  return readRaw(`  ${c.dim(padded)}  ${c.dim(S.arrow)}  `, true);
 }
 
 // Parse: /run --tier senior --provider openai "do the thing"

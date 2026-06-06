@@ -7,6 +7,15 @@ Versionamento: [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 ---
 
+## [1.5.1] — 2026-06-06
+
+### Corrigido
+
+- **`genesis-run` input travado no Windows PowerShell**: o input interativo (`readSecret`, REPL) travava porque `getRL().pause()` pausava o stdin antes de `setRawMode(true)`, impedindo que eventos `data` chegassem. Solução: eliminado o readline do caminho interativo — todo input usa agora raw mode diretamente (`process.stdin.setRawMode(true)` + `process.stdin.resume()`). Fallback com readline mudo para ambientes não-TTY (CI/pipe).
+- **Box desalinhada no CLI**: as linhas do meio da box tinham `│` sem recuo de 2 espaços (diferente das bordas superior/inferior). Corrigido.
+
+---
+
 ## [1.5.0] — 2026-06-06
 
 ### Adicionado
