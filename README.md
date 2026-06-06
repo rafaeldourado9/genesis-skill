@@ -13,7 +13,7 @@
 
 *Framework multi-agente que transforma uma descrição de projeto em arquitetura, código, testes e documentação — para qualquer linguagem, qualquer stack.*
 
-[**Instalação →**](#instalação) · [**Como funciona →**](#como-funciona) · [**Agentes →**](#agentes)
+[**Instalação →**](#instalação) · [**CLI →**](#genesis-run--cli-de-orquestração) · [**Como funciona →**](#como-funciona) · [**Agentes →**](#agentes)
 
 </div>
 
@@ -119,6 +119,196 @@ O instalador cria automaticamente os adapters de cada runtime.
 
 ```bash
 npx genesis-framework global
+```
+
+---
+
+## `genesis-run` — CLI de Orquestração
+
+O `genesis-run` é um CLI separado para quem quer usar os agentes do Genesis **fora de um editor** ou **em scripts/pipelines**. Ele gerencia chaves de API com segurança, roteia tarefas para o modelo certo, rastreia tokens e atualiza o `progress.md` automaticamente.
+
+> **Requer:** Node.js 18+ · `npm install -g github:rafaeldourado9/genesis-skill`
+
+---
+
+### Setup inicial
+
+Execute uma vez para configurar suas chaves e budget de tokens:
+
+```bash
+genesis-run setup
+```
+
+Você será guiado por um prompt interativo que aceita até 5 providers. As chaves ficam cifradas em `~/.genesis/vault.json` (AES-256-GCM + PBKDF2).
+
+Em ambientes CI/CD, use variáveis de ambiente — elas sempre têm prioridade sobre o vault:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+export OPENAI_API_KEY=sk-...
+export GEMINI_API_KEY=AIza...
+export GENESIS_VAULT_PASSPHRASE=senha-do-vault   # para usar o vault em CI
+```
+
+---
+
+### Gerenciar chaves
+
+```bash
+genesis-run keys list              # listar nomes das chaves salvas
+genesis-run keys set NOME valor    # adicionar ou atualizar uma chave
+genesis-run keys delete NOME       # remover uma chave
+```
+
+---
+
+### Executar uma tarefa
+
+```bash
+genesis-run run "descrição da tarefa"
+```
+
+O CLI detecta automaticamente o domínio e complexidade da tarefa e escolhe o tier e modelo mais adequado:
+
+| Tier detectado | Modelo padrão | Quando usa |
+|---------------|---------------|------------|
+| `junior` | claude-haiku | Tarefa simples, < 25 palavras, sem keywords complexas |
+| `pleno` | claude-sonnet | Padrão — tarefa de desenvolvimento normal |
+| `senior` | claude-opus | Keywords arquiteturais, alta complexidade, > 120 palavras |
+| `backend` | claude-sonnet | Detecção de: api, endpoint, service, migration... |
+| `frontend` | claude-sonnet | Detecção de: component, tela, css, react, vue... |
+| `qa` | claude-sonnet | Detecção de: test, spec, coverage, mock, e2e... |
+| `architect` | claude-opus | Detecção de: arquitetura, adr, c4, microservice... |
+
+**Opções:**
+
+```bash
+genesis-run run "tarefa" --tier senior          # forçar um tier específico
+genesis-run run "tarefa" --provider openai      # forçar provider
+genesis-run run "tarefa" --model gpt-4o         # forçar modelo exato
+genesis-run run "tarefa" --no-cache             # ignorar cache para esta chamada
+genesis-run run "tarefa" --label "nome da task" # rótulo no progress.md
+```
+
+**Aliases de modelo disponíveis:**
+
+| Alias | Modelo real |
+|-------|------------|
+| `claude-haiku` | claude-haiku-4-5-20251001 |
+| `claude-sonnet` | claude-sonnet-4-6 |
+| `claude-opus` | claude-opus-4-8 |
+| `gpt-mini` | gpt-4o-mini |
+| `gpt` | gpt-4o |
+| `gemini-flash` | gemini-1.5-flash |
+| `gemini-pro` | gemini-1.5-pro |
+
+---
+
+### Rodar em múltiplos LLMs em paralelo
+
+```bash
+genesis-run parallel "revise esta decisão arquitetural" --providers anthropic,openai
+
+genesis-run parallel "gere testes para este endpoint" --providers anthropic,gemini,openai
+```
+
+O resultado de cada provider é exibido separadamente. Útil para comparar respostas ou obter redundância.
+
+---
+
+### Status e monitoramento de tokens
+
+```bash
+genesis-run status
+```
+
+Exemplo de output:
+
+```
+Tokens — 2026-06-06
+Budget  : 500.000
+Usado   : 87.340 (17%)  [███░░░░░░░░░░░░░░░░░]
+
+Por modelo:
+  anthropic/claude-sonnet-4-6          78.200 tok  (12 calls)  | cache_read: 12.400
+  openai/gpt-4o                         9.140 tok   (3 calls)
+
+Última chamada: implementar endpoint de auth  14:22:07
+
+Cache: 8 entradas  24 KB
+Tasks pendentes: 3
+  ⬜ Implementar RBAC
+  ⬜ Testes de integração
+  ⬜ Deploy Docker
+```
+
+O CLI emite alertas automáticos no stderr quando o uso atinge 80%, 90% e 95% do budget:
+
+```
+🟡 AVISO: 80% do budget de tokens usado
+🔴 ALERTA: 90% do budget de tokens usado
+⛔ CRITICO: 95% do budget de tokens usado (487.500 / 500.000)
+```
+
+---
+
+### Cache
+
+```bash
+genesis-run cache stats    # ver tamanho e número de entradas
+genesis-run cache clear    # limpar todo o cache
+```
+
+O cache armazena respostas por 1 hora. Prompts idênticos (mesmo provider + modelo + mensagem) não consomem tokens — retornam instantaneamente.
+
+---
+
+### Budget de tokens
+
+```bash
+genesis-run budget set 1000000    # definir budget para 1M tokens/dia
+genesis-run budget reset          # reiniciar contagem da sessão
+```
+
+O budget é diário — reinicia automaticamente à meia-noite.
+
+---
+
+### Otimizações automáticas
+
+| Técnica | Como funciona |
+|---------|--------------|
+| **Cache SHA-256** | Respostas idênticas são reutilizadas sem chamada à API |
+| **Request coalescing** | Múltiplas tarefas enviadas em < 80ms são batched em uma única chamada |
+| **Prompt caching** | Para Claude, o system prompt é enviado com `cache_control: ephemeral` — tokens de cache são 10× mais baratos |
+| **Tier routing** | Tarefas simples vão para modelos menores (haiku) — reduz custo sem sacrificar qualidade |
+
+---
+
+### Segurança do vault
+
+As chaves de API nunca ficam em texto plano no disco:
+
+- Cifradas com **AES-256-GCM** (cifra autenticada — detecta adulteração)
+- Chave derivada com **PBKDF2 / SHA-256 / 120.000 iterações + salt aleatório de 256 bits**
+- Arquivo `~/.genesis/vault.json` com **permissão 0600** (só o dono lê)
+- **Echo suprimido** durante digitação da senha no terminal
+- **Variáveis de ambiente têm prioridade** — vault nunca é consultado se a env var existir
+
+> A chave fica em memória apenas durante o processo. Um atacante com acesso físico ao arquivo `vault.json` e sem a senha **não consegue extrair as chaves**.
+
+---
+
+### Referência rápida
+
+```
+genesis-run setup                          Configurar chaves e budget
+genesis-run keys list|set|delete           Gerenciar chaves no vault
+genesis-run run "tarefa" [opcoes]          Executar com roteamento automático
+genesis-run parallel "tarefa" --providers  Rodar em múltiplos LLMs em paralelo
+genesis-run status                         Ver tokens, cache e tasks pendentes
+genesis-run cache clear|stats              Gerenciar cache
+genesis-run budget set <n> | reset         Definir/reiniciar budget de tokens
 ```
 
 ---
@@ -342,7 +532,7 @@ O Genesis instala integrações nativas para:
 
 ## Roadmap
 
-### v1.4 — Instalação multi-runtime (atual)
+### v1.4 — Instalação multi-runtime ✅
 
 - [x] Instalação automática no Claude Code, Codex e OpenCode
 - [x] Comando `/genesis` no Claude Code e OpenCode
@@ -350,7 +540,19 @@ O Genesis instala integrações nativas para:
 - [x] Instalação global e por projeto com o mesmo CLI
 - [x] Testes automatizados dos adapters de cada runtime
 
-### v1.5 — Brownfield e domínios específicos (próximo)
+### v1.5 — CLI de orquestração + qualidade de prompts (atual)
+
+- [x] `genesis-run` — CLI multi-LLM com vault seguro (AES-256-GCM)
+- [x] Roteamento automático de tarefas por tier e domínio
+- [x] Suporte a Claude, OpenAI e Gemini em paralelo
+- [x] Cache SHA-256, request coalescing, prompt caching
+- [x] Rastreamento de tokens por modelo com alertas de budget
+- [x] Atualização automática de `progress.md` ao final de cada task
+- [x] SKILL.md reescritos no estilo prescritivo (compatível com qualquer LLM)
+- [x] Plano de capacidade no intake + teto de complexidade no architect (anti-overengineering)
+- [x] Validação pós-instalação e schema de `state.json`
+
+### v1.6 — Brownfield e domínios específicos (próximo)
 
 - [ ] `genesis-migrate` — planejador de migration para projetos brownfield complexos
 - [ ] Melhorar `genesis-scout` para codebases >50k linhas (amostragem dirigida)
@@ -360,6 +562,7 @@ O Genesis instala integrações nativas para:
 ### v2.0 — Plataforma (longo prazo)
 
 - [ ] Interface web para tracking de sprints e progresso
+- [ ] `genesis-run` em Go — binário único, sem Node.js como dependência
 - [ ] Registro de agentes da comunidade (terceiros)
 - [ ] Suporte a Cursor Rules (`.cursorrules`)
 
