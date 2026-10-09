@@ -325,10 +325,10 @@ genesis-data      ──→  diagrama ER, schema SQL, estratégia de índices, m
 genesis-sprint    ──→  gera backlog, executa sprint por sprint
 genesis-backend   ──→  API, services, repositories (adapta à sua linguagem)
 genesis-frontend  ──→  componentes UI, estado, rotas (adapta ao seu framework)
-genesis-qa        ──→  pirâmide de testes, BDD, cobertura
+genesis-qa        ──→  pirâmide de testes, BDD, E2E escrito por IA, regressão visual
 genesis-devops    ──→  Docker, pipelines CI/CD, monitoramento
 genesis-guard     ──→  auditoria de conformidade antes do merge
-genesis-inspector ──→  segurança frontend, mapa de telas/botões/bugs, sprint de fix
+genesis-inspector ──→  segurança frontend, inspeção no navegador real, sprint de fix
 genesis-docs      ──→  README, runbooks, catálogo de ADRs
 ```
 
@@ -402,13 +402,13 @@ Sprint 1 concluído. 3 restantes.
 | `genesis-data` | Design de dados | Diagrama ER, schema SQL, migrations |
 | `genesis-backend` | Camada de API | Services, repositories, OpenAPI |
 | `genesis-frontend` | Camada de UI | Componentes, hooks, rotas |
-| `genesis-qa` | Qualidade | Pirâmide de testes, BDD, E2E |
+| `genesis-qa` | Qualidade | Pirâmide de testes, BDD, E2E via Playwright Test Agents, regressão visual |
 | `genesis-devops` | Infraestrutura | Docker, CI/CD, monitoramento |
 | `genesis-sprint` | Execução | Backlog, orquestração de sprints |
 | `genesis-docs` | Documentação | README, runbooks, catálogo ADR |
 | `genesis-guard` | Conformidade | Relatório de auditoria pré-merge |
 | `genesis-reviewer` | Code review | Bugs, anti-patterns, drift |
-| `genesis-inspector` | Segurança UI + integração | Mapa de telas/botões/bugs, sprint de fix |
+| `genesis-inspector` | Segurança UI + integração | Análise estática + navegação real (Playwright/DevTools MCP), mapa de telas/botões/bugs, sprint de fix |
 
 ---
 
@@ -451,6 +451,9 @@ O Genesis se adapta ao que você usa:
 - Estratégia de pirâmide de testes
 - Contratos Given-When-Then
 - Testes unitários + integração + E2E
+- E2E gerado e mantido pelos Playwright Test Agents (planner, generator, healer)
+- Regressão visual (`toHaveScreenshot`) em desktop e mobile
+- Teste de regressão para cada bug confirmado pelo `genesis-inspector`
 - Relatório de cobertura
 
 ### Documentação
@@ -554,6 +557,8 @@ O Genesis instala integrações nativas para:
 
 ### v1.6 — Brownfield e domínios específicos (próximo)
 
+- [x] `genesis-inspector` com inspeção em runtime (Playwright MCP / Chrome DevTools MCP / script fallback)
+- [x] `genesis-qa` com Playwright Test Agents, regressão visual e testes de regressão a partir do inspector
 - [ ] `genesis-migrate` — planejador de migration para projetos brownfield complexos
 - [ ] Melhorar `genesis-scout` para codebases >50k linhas (amostragem dirigida)
 - [ ] `genesis-mobile` — agente dedicado para React Native + Expo

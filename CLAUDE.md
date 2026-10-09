@@ -13,11 +13,11 @@ Digite `/genesis` para iniciar ou retomar a construção do projeto.
 | `/genesis` | Iniciar ou retomar (ponto de entrada principal) |
 | `/genesis-architect` | Apenas arquitetura e ADRs |
 | `/genesis-sprint` | Executar próximo sprint |
-| `/genesis-qa` | Gerar e rodar testes |
+| `/genesis-qa` | Gerar e rodar testes (E2E escrito por IA, regressão visual) |
 | `/genesis-guard` | Auditar conformidade antes de merge |
 | `/genesis-reviewer` | Code review |
 | `/genesis-docs` | Gerar documentação |
-| `/genesis-inspector` | Inspecionar segurança, telas, botões, bugs e integração frontend↔backend |
+| `/genesis-inspector` | Inspecionar segurança, telas, botões, bugs e integração frontend↔backend — no código e no navegador |
 
 ## Regra
 

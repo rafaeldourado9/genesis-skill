@@ -5,11 +5,14 @@ description: >
   visual. Testa tela por tela, botão por botão, componente por componente.
   Detecta dados sensíveis expostos no frontend, erros de z-index/stacking
   context, falhas de comunicação backend↔frontend, e quebras visuais.
+  Além da análise estática, abre o app num navegador real (Playwright MCP,
+  Chrome DevTools MCP ou script Playwright) e percorre as telas clicando,
+  lendo console e rede, e tirando screenshots em desktop e mobile.
   Gera sprint de correções com ajustes priorizados. Nunca implementa —
   inspeciona, reporta e planeja o conserto.
 metadata:
   author: genesis-framework
-  version: "1.0.0"
+  version: "1.1.0"
   role: frontend-inspector
   framework: genesis
 ---
@@ -17,6 +20,12 @@ metadata:
 ## Tarefa
 
 Inspecionar a interface de usuário tela por tela e produzir um relatório de issues com severidade e sprint de correções. **Você não implementa correções** — inspeciona, documenta e planeja o conserto. Execute os passos abaixo **na ordem**.
+
+A inspeção tem duas metades:
+- **Estática (Domínios 1–5):** lê o código. Rápida, mas só levanta *suspeitas*.
+- **Runtime (Domínio 6):** abre o app num navegador e usa como um usuário. Confirma ou descarta as suspeitas e encontra o que só aparece rodando (fluxo quebrado, erro no console, 500 da API, layout quebrado no celular, botão coberto por outro elemento).
+
+Sempre que houver um navegador disponível, rode as duas. Sem navegador, rode só a estática e diga isso explicitamente no relatório — **nunca invente resultado de runtime**.
 
 ---
 
@@ -390,6 +399,224 @@ grep -rn "?password=\|?token=\|?secret=" src/ --include="*.ts" --include="*.tsx"
 
 ---
 
+### DOMÍNIO 6 — Inspeção em Runtime (navegador real)
+
+Aqui você **usa o app** como um usuário: navega, clica, preenche formulários, lê o console e a rede e tira screenshots. É o que transforma as suspeitas dos Domínios 1–5 em bugs confirmados e acha os bugs que o código sozinho não mostra.
+
+#### 6.0 Escolher o navegador
+
+Verifique, nesta ordem, qual ferramenta está disponível na sessão:
+
+| Prioridade | Ferramenta | Como reconhecer | Melhor para |
+|-----------|-----------|-----------------|-------------|
+| 1 | **Playwright MCP** | tools `browser_navigate`, `browser_snapshot`, `browser_click`… | Navegar, clicar, preencher, screenshot, console e rede |
+| 2 | **Chrome DevTools MCP** | tools `navigate_page`, `take_snapshot`, `list_console_messages`, `list_network_requests`… | Igual ao anterior + performance e detalhes de rede |
+| 3 | Outro navegador controlável (Claude in Chrome, browser do runtime) | tools de navegação/clique/screenshot | Mesmo roteiro, adaptando os nomes |
+| 4 | **Script Playwright** (fallback, sem MCP) | `@playwright/test` ou `playwright` no `package.json` | Varredura automática de rotas (sem clicar em botões) — ver 6.7 |
+| — | Nenhum | — | Pule o Domínio 6 e marque `⏭️ não executado` no relatório |
+
+Se não houver nenhuma, **informe o usuário** como habilitar e siga só com a análise estática:
+
+```bash
+# Claude Code — Playwright MCP
+claude mcp add playwright -- npx @playwright/mcp@latest
+
+# Claude Code — Chrome DevTools MCP
+claude mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+
+# Outros clientes MCP (Cursor, Codex, etc.): adicionar ao config de MCP
+# { "command": "npx", "args": ["@playwright/mcp@latest"] }
+```
+
+#### 6.1 Regras de segurança — leia antes de clicar em qualquer coisa
+
+- **Só rode em ambiente local, de desenvolvimento ou staging.** Se a única URL disponível for produção, **pare e pergunte** ao usuário antes de continuar — e, mesmo autorizado, em produção faça apenas navegação e leitura (sem submeter formulários).
+- **Nunca** conclua pagamento, envie e-mail/SMS real, convide usuários reais ou dispare integrações externas.
+- Ações destrutivas (excluir, cancelar, resetar) só em dados criados por você durante a inspeção. Pode abrir o modal de confirmação para verificar que ele existe; **cancele** em vez de confirmar se o dado não for seu.
+- Credenciais: use usuários de teste (variáveis como `GENESIS_TEST_USER`/`GENESIS_TEST_PASSWORD`, seeds do projeto, ou peça ao usuário). Nunca use credencial pessoal de produção e **nunca escreva senha no relatório**.
+- No relatório, registre o **nome** das chaves de storage/cookies suspeitas, nunca o **valor** (tokens, CPFs, etc.).
+
+#### 6.2 Subir o app e descobrir as rotas
+
+```bash
+# Descobrir como o app sobe
+cat package.json 2>/dev/null | grep -A 15 '"scripts"'
+
+# Ver se já tem algo rodando nas portas comuns
+for p in 3000 4200 5173 8080 4173; do
+  curl -s -o /dev/null -w "$p → %{http_code}\n" "http://localhost:$p" 2>/dev/null
+done
+```
+
+- Se nada estiver rodando, suba o dev server em **background** (`npm run dev`, `pnpm dev`, etc.) e espere responder 200. Se o app depende de backend/banco que você não consegue subir, pergunte ao usuário a URL de um ambiente que funcione.
+- **Lista de rotas:** manifest → router do código (`src/pages/`, `app/`, `src/router*`, `routes.tsx`) → links encontrados navegando a partir da home. Anote as rotas com parâmetro (`/users/:id`) e use um ID real que aparecer na listagem.
+- **Lista de roles:** manifest → enum/constantes de role no código. Inspecione cada rota com pelo menos: deslogado, role mais baixa e role admin.
+
+#### 6.3 Roteiro por tela
+
+Para **cada rota × cada role**, execute:
+
+```
+TELA: {nome}  ROTA: {path}  ROLE: {role}  VIEWPORT: {desktop 1440×900 | mobile 390×844}
+
+Carregamento
+[ ] Navegar e esperar a tela estabilizar
+[ ] Snapshot de acessibilidade (browser_snapshot / take_snapshot) → lista real de botões, links e inputs
+[ ] Screenshot (desktop E mobile) → salvar em .genesis/memory/inspector-evidence/{date}/
+[ ] Console: algum error / unhandled rejection / warning de React key, hydration, etc.?
+[ ] Rede: alguma requisição 4xx/5xx, CORS bloqueado, request pendurado, chamada duplicada?
+[ ] Rodar o CHECK DE LAYOUT (abaixo) → scroll horizontal? elementos clicáveis cobertos?
+
+Interação
+[ ] Clicar em cada botão/link seguro (regras 6.1) → algo acontece? navega, abre modal, chama API?
+[ ] Botão que não faz nada visível e não dispara request → UI- "botão morto" confirmado
+[ ] Formulário: enviar VAZIO → aparece validação? (não pode chamar a API)
+[ ] Formulário: enviar INVÁLIDO (email ruim, texto em campo numérico, 5000 caracteres) → mensagem clara?
+[ ] Formulário: enviar VÁLIDO → toast de sucesso? dado aparece na lista?
+[ ] Duplo clique rápido no submit → dispara 2 requests? (double-submit)
+[ ] Modal/dropdown/tooltip abertos → aparecem por cima de tudo? fecham com ESC/clique fora?
+[ ] Ação destrutiva → tem confirmação? (abrir e cancelar)
+
+Estados
+[ ] Empty: tela com lista vazia mostra mensagem (use um usuário/tenant sem dados, se houver)
+[ ] Error: se a ferramenta permitir bloquear/mockar requests (interceptar a rota da API, emular offline ou bloquear a URL no DevTools), force falha da API principal da tela → aparece estado de erro ou fica em branco/loading infinito?
+[ ] Voltar/avançar do navegador e F5 na tela → mantém estado ou quebra?
+
+Acesso
+[ ] Deslogado acessando rota protegida → redireciona para login?
+[ ] Role sem permissão acessando a rota pela URL → redireciona/403? (esconder o botão no menu não basta)
+[ ] Dados exibidos pertencem ao usuário/tenant logado?
+```
+
+**CHECK DE LAYOUT** — execute na página (`browser_evaluate` no Playwright MCP, `evaluate_script` no Chrome DevTools MCP):
+
+```javascript
+() => {
+  const doc = document.documentElement;
+  const out = { overflowX: doc.scrollWidth > doc.clientWidth, obscured: [], semNome: [] };
+  const clicaveis = document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]');
+  for (const el of clicaveis) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight) continue;
+    const nome = (el.innerText || el.getAttribute('aria-label') || el.getAttribute('placeholder') || '').trim();
+    if (!nome && el.tagName !== 'INPUT') out.semNome.push(el.outerHTML.slice(0, 80));
+    const topo = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (topo && topo !== el && !el.contains(topo) && !topo.contains(el)) {
+      out.obscured.push({ elemento: nome.slice(0, 40) || el.tagName, cobertoPor: topo.tagName + (topo.id ? '#' + topo.id : '') });
+    }
+  }
+  return out;
+}
+```
+
+- `overflowX: true` no mobile → `CSS-` responsividade confirmada.
+- `obscured` não vazio → `CSS-` z-index/stacking context confirmado (é a prova em runtime do que o Domínio 3.1 só suspeitava).
+- `semNome` → `A11Y-` botão/link sem texto acessível.
+
+#### 6.4 Dados sensíveis em runtime
+
+```javascript
+() => ({
+  localStorage: Object.keys(localStorage),
+  sessionStorage: Object.keys(sessionStorage),
+  cookiesLegiveisPorJS: document.cookie.split(';').map(c => c.split('=')[0].trim()).filter(Boolean),
+})
+```
+
+- Chave com cara de `password`, `cpf`, `card`, `secret` no storage → `SEC-` crítico.
+- Cookie de sessão/token aparecendo em `cookiesLegiveisPorJS` → não é `HttpOnly` → `SEC-`.
+- Nas respostas de rede da tela, procure campos `password`, `password_hash`, `secret`, `token` de outros usuários, CPF sem máscara → `SEC-` (confirma o Domínio 1.2).
+- Mensagem de erro exibindo stack trace, SQL ou path do servidor → `SEC-`.
+
+#### 6.5 Cruzar com a análise estática
+
+Para cada issue dos Domínios 1–5 que o runtime pode confirmar, marque no relatório:
+
+| Marcação | Significado |
+|---------|-------------|
+| `✔ confirmado em runtime` | Reproduzido no navegador — prioridade sobe |
+| `✖ falso positivo` | O grep apontou, mas no navegador funciona — **remover** do sprint de fix |
+| `? não verificável` | Precisa de dado/role/ambiente que não estava disponível |
+
+Issues encontradas **só** no runtime recebem o prefixo `RUN-` quando não se encaixam em outra categoria (ex.: erro no console sem causa óbvia, 500 da API, loading infinito).
+
+#### 6.6 Evidência e passos de reprodução (obrigatório)
+
+Todo bug de runtime precisa de:
+- **Passos exatos** para reproduzir (rota, role, viewport, cliques e valores digitados, na ordem)
+- **Esperado vs. obtido**
+- **Evidência:** caminho do screenshot e/ou trecho do console / request com status
+
+Sem passos de reprodução, o bug não entra no relatório. Esses passos são o insumo para o `genesis-qa` transformar cada bug em teste de regressão Playwright.
+
+#### 6.7 Fallback sem MCP — varredura por script Playwright
+
+Se só houver Playwright instalado no projeto (sem MCP), gere este script em `.genesis/tmp/runtime-inspect.mjs`, rode e use o JSON como fonte do Domínio 6. Ele **não clica em botões** — cobre carregamento, console, rede, screenshots e layout. Marque no relatório que a parte de interação não foi executada.
+
+```javascript
+// .genesis/tmp/runtime-inspect.mjs
+// BASE_URL=http://localhost:5173 ROUTES='["/","/login","/users"]' node .genesis/tmp/runtime-inspect.mjs
+// Para rotas autenticadas: gere o login uma vez com
+//   npx playwright codegen --save-storage=.genesis/tmp/auth.json http://localhost:5173/login
+// e rode com STORAGE_STATE=.genesis/tmp/auth.json
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+
+const BASE = process.env.BASE_URL ?? 'http://localhost:5173';
+const ROUTES = JSON.parse(process.env.ROUTES ?? '["/"]');
+const OUT = process.env.OUT ?? `.genesis/memory/inspector-evidence/${new Date().toISOString().slice(0, 10)}`;
+const VIEWPORTS = { desktop: { width: 1440, height: 900 }, mobile: { width: 390, height: 844 } };
+
+const layoutCheck = () => {
+  const doc = document.documentElement;
+  const obscured = [];
+  for (const el of document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || r.bottom < 0 || r.top > innerHeight) continue;
+    const topo = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (topo && topo !== el && !el.contains(topo) && !topo.contains(el)) {
+      obscured.push({ elemento: (el.innerText || el.getAttribute('aria-label') || el.tagName).trim().slice(0, 40), cobertoPor: topo.tagName });
+    }
+  }
+  return { overflowX: doc.scrollWidth > doc.clientWidth, obscured };
+};
+
+fs.mkdirSync(OUT, { recursive: true });
+const browser = await chromium.launch();
+const results = [];
+
+for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
+  const context = await browser.newContext({ viewport, storageState: process.env.STORAGE_STATE || undefined });
+  for (const route of ROUTES) {
+    const page = await context.newPage();
+    const consoleErrors = [];
+    const failedRequests = [];
+    page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
+    page.on('pageerror', (e) => consoleErrors.push(e.message));
+    page.on('response', (r) => r.status() >= 400 && failedRequests.push(`${r.status()} ${r.request().method()} ${r.url()}`));
+    page.on('requestfailed', (r) => failedRequests.push(`FAILED ${r.method()} ${r.url()} — ${r.failure()?.errorText}`));
+
+    await page.goto(BASE + route, { waitUntil: 'networkidle', timeout: 30_000 })
+      .catch((e) => consoleErrors.push(`goto: ${e.message}`));
+    const layout = await page.evaluate(layoutCheck).catch(() => ({}));
+    const screenshot = `${OUT}/${viewportName}${route.replace(/\W+/g, '_') || '_root'}.png`;
+    await page.screenshot({ path: screenshot, fullPage: true }).catch(() => {});
+
+    results.push({ route, viewport: viewportName, finalUrl: page.url(), consoleErrors, failedRequests, ...layout, screenshot });
+    await page.close();
+  }
+  await context.close();
+}
+
+await browser.close();
+fs.writeFileSync(`${OUT}/runtime-results.json`, JSON.stringify(results, null, 2));
+console.log(`${results.length} páginas inspecionadas → ${OUT}/runtime-results.json`);
+```
+
+`finalUrl` diferente da rota pedida, sem login → a rota redireciona (bom para rotas protegidas, bug se a rota era pública).
+
+---
+
 ## Relatório de Inspeção
 
 Gere `.genesis/memory/inspector-report-{date}.md`:
@@ -408,6 +635,11 @@ Inspector: genesis-inspector
 | CSS / Layout / Z-index | {✅/⚠️/❌} | {N} issues |
 | Comunicação API | {✅/⚠️/❌} | {N} issues |
 | Dados em Trânsito | {✅/⚠️/❌} | {N} issues |
+| Runtime (navegador) | {✅/⚠️/❌/⏭️ não executado} | {N} issues |
+
+**Runtime:** {ferramenta usada — Playwright MCP / Chrome DevTools MCP / script fallback / não executado (motivo)}
+**Ambiente:** {URL inspecionada — local/staging} | **Roles testadas:** {lista} | **Viewports:** desktop 1440×900, mobile 390×844
+**Estática × runtime:** {N} confirmados | {N} falsos positivos removidos | {N} não verificáveis
 
 ## Issues Críticos — Bloqueiam deploy ❌
 
@@ -416,6 +648,18 @@ Inspector: genesis-inspector
 **Problema:** {descrição exata}
 **Risco:** {o que pode acontecer se não for corrigido}
 **Fix sugerido:** {descrição da correção — quem implementa: genesis-backend/frontend}
+**Runtime:** {✔ confirmado em runtime / ? não verificável / só estático}
+
+### [RUN-001] {Título}
+**Onde:** `Tela: {nome}` — rota `{path}` — role `{role}` — viewport `{desktop/mobile}`
+**Passos para reproduzir:**
+1. {Abrir /rota logado como role}
+2. {Clicar em "Botão"}
+3. {Preencher campo X com "valor"}
+**Esperado:** {o que deveria acontecer}
+**Obtido:** {o que aconteceu}
+**Evidência:** `.genesis/memory/inspector-evidence/{date}/{arquivo}.png` · console: `{erro}` · rede: `{status METHOD url}`
+**Fix sugerido:** {descrição} — **Teste de regressão:** genesis-qa
 
 ## Issues Importantes — Corrigir no próximo sprint ⚠️
 
@@ -444,9 +688,15 @@ e localização. Nada fica sem dono.
 
 ### Mapa de telas
 
-| Tela | Arquivo | Rota | Auth | Role | Loading | Error | Empty | API ok |
-|------|---------|------|------|------|---------|-------|-------|--------|
-| {nome} | `{caminho}` | {path} | {✅/❌} | {✅/❌/N/A} | {✅/❌} | {✅/❌} | {✅/❌} | {✅/❌} |
+| Tela | Arquivo | Rota | Auth | Role | Loading | Error | Empty | API ok | Runtime |
+|------|---------|------|------|------|---------|-------|-------|--------|---------|
+| {nome} | `{caminho}` | {path} | {✅/❌} | {✅/❌/N/A} | {✅/❌} | {✅/❌} | {✅/❌} | {✅/❌} | {✅ ok / ❌ {N} bugs / ⏭️} |
+
+### Mapa de execução em runtime
+
+| Rota | Role | Viewport | Console errors | Requests com falha | Scroll horizontal | Clicáveis cobertos | Screenshot |
+|------|------|----------|----------------|--------------------|-------------------|--------------------|------------|
+| {path} | {role} | {desktop/mobile} | {N} | {N — ex.: 500 POST /api/v1/orders} | {✅ não / ❌ sim} | {N} | `{caminho.png}` |
 
 ### Mapa de botões e ações
 
@@ -476,6 +726,7 @@ Cada bug recebe um nome único no formato `[CATEGORIA-NNN] NomeDoBug`:
 - `API-` Comunicação frontend↔backend (órfã, typo, shape errado)
 - `UX-` Experiência do usuário (loading/error/empty ausente)
 - `A11Y-` Acessibilidade (alt faltando, aria faltando)
+- `RUN-` Só aparece rodando (erro de console, 500 da API, loading infinito, fluxo que não completa)
 
 ### Mapa de chamadas de API (frontend → backend)
 
@@ -517,6 +768,14 @@ Base: inspector-report-{date}.md
 | FIX-04 | Corrigir z-index do modal (z-10 → z-50) em Modal.tsx | genesis-frontend | CSS-001 | 1h |
 | FIX-05 | Adicionar estado de erro na tela de Pedidos | genesis-frontend | UX-001 | 2h |
 | FIX-06 | Adicionar httpOnly flag no cookie de auth | genesis-backend | SEC-004 | 1h |
+
+## Testes de regressão (bugs confirmados em runtime)
+
+Todo bug com `✔ confirmado em runtime` ou `RUN-` vira um teste Playwright, para não voltar.
+
+| # | Task | Agente | Bug ID | Passos de reprodução |
+|---|------|--------|--------|----------------------|
+| REG-01 | Teste E2E reproduzindo {bug} — deve falhar antes do fix e passar depois | genesis-qa | RUN-001 | ver relatório, seção RUN-001 |
 
 ## Issues menores (backlog)
 
@@ -567,6 +826,7 @@ Execute nesta ordem:
 3. **CSS/layout** — foque em componentes compartilhados (Navbar, Modal, Sidebar, Dropdown)
 4. **Comunicação API** — contraste o openapi.yaml com o código frontend
 5. **Dados em trânsito** — URLs, headers, storage
+6. **Runtime** — abrir no navegador, percorrer rota × role × viewport, confirmar ou descartar os achados de 1–5
 
 Se não houver manifest, inspecione os arquivos em:
 - `src/pages/` ou `app/` (Next.js) ou `src/views/` (Vue)
@@ -585,9 +845,14 @@ Chamadas de API mapeadas: {N}
 Segurança:    {N} críticos | {N} importantes | {N} menores
 Visual/CSS:   {N} críticos | {N} importantes | {N} menores
 Comunicação:  {N} críticos | {N} importantes | {N} menores
+Runtime:      {N} críticos | {N} importantes | {N} menores  ({ferramenta} — ou ⏭️ não executado: {motivo})
+              {N} achados estáticos confirmados | {N} falsos positivos removidos
 
 Veredicto: {APROVADO / APROVADO COM RESSALVAS / BLOQUEADO — não fazer deploy}
 
 Relatório: .genesis/memory/inspector-report-{date}.md
 Sprint fix: .genesis/sprints/sprint-fix-{date}.md
+Evidências: .genesis/memory/inspector-evidence/{date}/
 ```
+
+Se o dev server foi iniciado por você, encerre-o ao final.
