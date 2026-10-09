@@ -7,6 +7,31 @@ Versionamento: [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 ---
 
+## [Não lançado]
+
+### Adicionado
+
+**`genesis-inspector` — inspeção em runtime (Domínio 6):**
+- Abre o app num navegador real via Playwright MCP, Chrome DevTools MCP ou outro navegador controlável, e percorre cada rota × role × viewport (desktop 1440×900, mobile 390×844)
+- Clica em botões, envia formulários vazios/inválidos/válidos, testa double-submit, modais, confirmação de ação destrutiva e acesso por URL sem permissão
+- Coleta erros de console, requests 4xx/5xx/CORS e screenshots como evidência em `.genesis/memory/inspector-evidence/{date}/`
+- Check de layout em JS: scroll horizontal, elementos clicáveis cobertos (prova em runtime de bug de z-index) e botões sem nome acessível
+- Check de storage e cookies legíveis por JS (registra só o nome das chaves, nunca o valor)
+- Cruza com a análise estática: achados `✔ confirmado em runtime`, `✖ falso positivo` (removido do sprint) ou `? não verificável`
+- Novo prefixo `RUN-` com passos de reprodução obrigatórios
+- Regras de segurança: só local/staging, sem pagamentos, e-mails reais ou exclusão de dados que não foram criados na inspeção
+- Fallback sem MCP: script Playwright de varredura de rotas (`.genesis/tmp/runtime-inspect.mjs`)
+- Sem navegador disponível, o domínio é marcado `⏭️ não executado` — nunca há resultado de runtime inventado
+
+**`genesis-qa` — E2E assistido por IA:**
+- Playwright Test Agents (`npx playwright init-agents`): planner, generator e healer escrevem e mantêm os testes; o CI roda Playwright puro, sem LLM
+- Regressão visual com `toHaveScreenshot` em desktop e mobile
+- Cada bug `RUN-`/confirmado do inspector vira teste de regressão com o ID no título (`test.fail()` enquanto o bug estiver aberto)
+- Fixture que falha o E2E se houver erro de console
+- Modo para projeto existente sem `.genesis/`: descobre rotas e roles no código em vez de parar
+
+---
+
 ## [1.5.1] — 2026-06-06
 
 ### Corrigido
